@@ -95,7 +95,7 @@ do_rake = function(data, target, weights,
   for(i in 1:max_iterations) {
     # Let the user know we're starting the iteration, and if it's not the first,
     # how much the weights changed since last time.
-    if(verbose > 1) {
+    if(verbose >= 2) {
       message("Beginning iteration ", i,
               ifelse(i > 1,
                      paste0(" (total weight update: ", weight_update_sum, ")"),
@@ -107,14 +107,14 @@ do_rake = function(data, target, weights,
 
     # Rake each variable one at a time.
     for(j in names(target)) {
-      if(verbose > 2) message("  Raking variable: ", j)
+      if(verbose >= 2) message("  Raking variable: ", j)
       weights = single_adjust(data, weights, target, j, pre_cache)
     }
 
     # Clamp weights if necessary -- why sum / length? Faster than mean.
     clamp_offset = 1e-4
     if(max(weights) > max_weight + clamp_offset) {
-      if(verbose > 1) message("  Clamping weights.")
+      if(verbose >= 2) message("  Clamping weights.")
       weights = clamp_weights_top(weights, max_weight)
       if(enforce_mean) weights = weights / (sum(weights) / length(weights))
     }
@@ -122,7 +122,7 @@ do_rake = function(data, target, weights,
     # If there's only one variable in the rake set, it is by definition raked
     # after a single iteration
     if(length(target) == 1) {
-      if(verbose > 1) message("  Single variable rake is exactly correct.")
+      if(verbose >= 2) message("  Single variable rake is exactly correct.")
       weight_update_sum = 0
       break
     }
@@ -134,7 +134,7 @@ do_rake = function(data, target, weights,
     # The amount the weights updated are too close to the amount the weights
     # updated last time, so we've converged.
     if(weight_update_sum > weight_update_old * (1 - convergence[["pct"]])) {
-      if(verbose > 1) {
+      if(verbose >= 2) {
         message("Convergence at iteration ", i, " based on weight update > ",
                 (100 * (1 - convergence["pct"])), "% of previous iteration.")
       }
@@ -143,7 +143,7 @@ do_rake = function(data, target, weights,
 
     # The weights have barely updated, let's finish faster
     if(weight_update_sum < convergence[["absolute"]]) {
-      if(verbose > 1) {
+      if(verbose >= 2) {
         message("Convergence based on total weight update < ",
                 sprintf("%.8f", convergence[["absolute"]]))
       }
@@ -153,7 +153,7 @@ do_rake = function(data, target, weights,
     # The weights have barely updated, let's finish faster.
     if("single_weight" %in% names(convergence) &&
        max(abs(weights - old_weights)) < convergence[["single_weight"]]) {
-      if(verbose > 1) {
+      if(verbose >= 2) {
         message("Convergence based on max weight update < ",
                 sprintf("%.8f", convergence[["single_weight"]]))
       }
@@ -173,7 +173,7 @@ do_rake = function(data, target, weights,
   # we stopped processing -- versus ANESrake, this warning is based on the
   # overall length of the weights, since something with more observations
   # can have more updating with relatively speaking substantive impact.
-  if(weight_update_sum > 0.001 * length(weights)) {
+  if(verbose && weight_update_sum > 0.001 * length(weights)) {
     warning("Partial convergence only after ", i, " iterations: ",
             weight_update_sum, " / ", weight_update_old)
   }
