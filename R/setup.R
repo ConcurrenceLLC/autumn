@@ -34,7 +34,7 @@ check_any_startup_issues = function(data, weights, convergence, ...) {
 }
 
 get_levels <- function(column) {
-  ifelse(inherits(column, "factor"), levels(column), unique(column))
+  if (inherits(column, "factor")) levels(column) else unique(column)
 }
 
 check_any_data_issues = function(data, target, weights) {
