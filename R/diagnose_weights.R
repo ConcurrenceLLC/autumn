@@ -44,10 +44,16 @@ diagnose_weights = function(data, target=NULL, weights=NULL) {
   # their data frame, then we also know where in the environment that we can
   # find the target proportion that was used.
   if(is.null(target) && !is.null(attr(data, "target_symbol"))) {
-    # get0 checks if a variable matching the character vector exists, and
-    # returns null if it doesn't. So we're still null, then we thought we
-    # could get the target proportions but we couldn't.
-    target = get0(attr(data, "target_symbol"))
+
+    target_symbol = attr(data, "target_symbol")
+
+    # Use get0 to check for a variable, then fall back to eval(parse(...)), then error
+    target = get0(target_symbol)
+
+    if(is.null(target)) {
+      target = eval(parse(text = target_symbol), envir = parent.frame())
+    }
+
     if(is.null(target)) {
       stop("Error: No `target` argument was provided and attempt to locate ",
            "target used to construct weights failed. Either explicitly ",
