@@ -33,6 +33,10 @@ check_any_startup_issues = function(data, weights, convergence, ...) {
   }
 }
 
+get_levels <- function(column) {
+  ifelse(inherits(column, "factor"), levels(columns), unique(column))
+}
+
 check_any_data_issues = function(data, target, weights) {
   # Basic audit of data issues.
 
@@ -50,7 +54,7 @@ check_any_data_issues = function(data, target, weights) {
   # the data?
   sub = data[, columns]
   target_errors = lapply(columns, function(column) {
-    missing = setdiff(unique(data[[column]]), c(NA, names(target[[column]])))
+    missing = setdiff(get_levels(data[[column]]), c(NA, names(target[[column]])))
     if(!length(missing)) {
       return(NULL)
     }
@@ -69,7 +73,7 @@ check_any_data_issues = function(data, target, weights) {
   # Are there any levels in the weighting variables in the data that are not
   # in the target target?
   data_errors = lapply(columns, function(column) {
-    missing = setdiff(names(target[[column]]), unique(data[[column]]))
+    missing = setdiff(names(target[[column]]), get_levels(data[[column]]))
     if(!length(missing)) {
       return(NULL)
     }
